@@ -59,6 +59,8 @@ def main(argv):
     print_error(df_data.copy(), config)
     print_resources(df_data.copy(), config)
 
+    print_all_data(df_data.copy(), config)
+
 
 def set_graphics_options(config):
     pd.set_option('display.max_columns', None)
@@ -160,6 +162,11 @@ def prepare_data(config):
     df_data = df_data.replace({'Type': 'TF'}, 'Subset')
     df_data = df_data.replace({'Type': 'FT'}, 'Superset')
     df_data = df_data.replace({'Type': 'TT'}, 'Equal')
+
+    df_data['OutOfMemory'] = df_data['Time'] < 0
+    df_data['OutOfMemory'] = df_data['OutOfMemory'].astype(int)
+    df_data['NoResult'] = df_data['Type'] == 'NoResult'
+    df_data['NoResult'] = df_data['NoResult'].astype(int)
 
     df_data['Time'] = df_data['Time'] / 1000.0
 
@@ -268,6 +275,43 @@ def plot_type(df, normalize, config):
     handles, labels = axes[0].get_legend_handles_labels()
     fig.legend(handles, labels, loc='lower right', bbox_to_anchor=(1, 0.1),ncol=2)
     create_plot('found_interactions', config, 1.7)
+
+
+def print_all_data(df, config):
+    df_filter = df
+
+    df_filter['Time'] = df_filter['Time'].mask(df_filter['Time'] < 0)
+    df_filter['Configurations'] = df_filter['Configurations'].replace(-1, np.nan)
+    df_filter['CorrectlyFoundLiteralsCount'] = df_filter['CorrectlyFoundLiteralsCount'].replace(-1, np.nan)
+    df_filter['MissedLiteralsCount'] = df_filter['MissedLiteralsCount'].replace(-1, np.nan)
+
+    df_filter = df_filter[['ModelName', 'ModelIteration', 'InteractionSize', 'T', 'Algorithm', 'Time', 'Configurations', 'Type', 'NoResult', 'OutOfMemory', 'CorrectlyFoundLiteralsCount', 'MissedLiteralsCount']]
+    create_csv(df_filter, 'data', config)
+
+    df_agg = df_filter[['ModelName', 'InteractionSize', 'T', 'Algorithm', 'Time', 'Configurations', 'ModelIteration', 'NoResult', 'OutOfMemory', 'CorrectlyFoundLiteralsCount', 'MissedLiteralsCount']]
+    df_agg = df_agg.groupby(['ModelName', 'InteractionSize', 'T', 'Algorithm']).agg({\
+        'Time': ['median','max'],\
+        'Configurations': ['median','max'],\
+        'ModelIteration': ['count'],\
+        'NoResult': ['sum'],\
+        'OutOfMemory': ['sum'],\
+        'CorrectlyFoundLiteralsCount': ['median','max'],\
+        'MissedLiteralsCount': ['median','max']\
+        }).reset_index()
+    create_csv(df_agg, 'data_aggregated_iteration', config)
+
+
+    df_agg = df_filter[['InteractionSize', 'T', 'Algorithm', 'Time', 'Configurations', 'ModelIteration', 'NoResult', 'OutOfMemory', 'CorrectlyFoundLiteralsCount', 'MissedLiteralsCount']]
+    df_agg = df_agg.groupby(['InteractionSize', 'T', 'Algorithm']).agg({\
+        'Time': ['median','max'],\
+        'Configurations': ['median','max'],\
+        'ModelIteration': ['count'],\
+        'NoResult': ['sum'],\
+        'OutOfMemory': ['sum'],\
+        'CorrectlyFoundLiteralsCount': ['median','max'],\
+        'MissedLiteralsCount': ['median','max']\
+        }).reset_index()
+    create_csv(df_agg, 'data_aggregated_model_iteration', config)
 
 
 def print_resources(df, config):

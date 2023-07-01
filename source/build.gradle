@@ -1,0 +1,50 @@
+
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import com.github.jengelman.gradle.plugins.shadow.transformers.XmlAppendingTransformer
+
+plugins {
+    id 'java'
+    id 'maven-publish'
+    id 'application'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+}
+
+
+group = 'inciident'
+version = '1.0.0'
+archivesBaseName = 'inciident-eval'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    shadow localGroovy()
+    shadow gradleApi()
+    implementation 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.5'
+}
+
+application {
+    mainClass = 'inciident.util.cli.CLI'
+}
+
+java {
+    sourceCompatibility = 1.11
+    withSourcesJar()
+}
+
+tasks.named('shadowJar', ShadowJar) {
+    enableRelocation true
+}
+
+task copyBinaries (type: Copy) {
+    from 'src/main/resources/bin/.'
+    into System.getProperty('user.home') + '/.featjar-bin'
+}
+tasks.matching { it != copyBinaries }.all { it.dependsOn copyBinaries }
+
+shadowJar {
+    transform(XmlAppendingTransformer.class) {
+        resource = 'extensions.xml'
+    }
+}

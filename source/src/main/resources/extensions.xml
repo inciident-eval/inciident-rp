@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<extensions>
+	<point id="inciident.util.cli.CLIFunctionManager">
+	    <extension id="inciident.evaluation.interactionfinder.InteractionFinderEvaluator" />
+	</point>
+	<point id="inciident.evaluation.EvaluationPhaseExtensionPoint">
+		<extension id="inciident.evaluation.OutputCleaner" />
+	    <extension id="inciident.evaluation.interactionfinder.FindingPhase" />
+	</point>
+	<point id="inciident.formula.io.FormulaFormatManager">
+	    <extension id="inciident.formula.io.dimacs.DIMACSFormat" />
+	    <extension id="inciident.formula.io.xml.XMLFeatureModelCNFFormat" />
+	    <extension id="inciident.formula.io.textual.FormulaFormat" />
+	    <extension id="inciident.formula.io.KConfigReaderFormat" />
+	</point>
+</extensions>

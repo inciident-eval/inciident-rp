@@ -1,0 +1,22 @@
+
+package inciident.formula.structure.transform;
+
+import inciident.formula.structure.Formula;
+import inciident.formula.structure.compound.And;
+import inciident.formula.structure.compound.Compound;
+import inciident.formula.structure.compound.Or;
+import inciident.util.job.InternalMonitor;
+
+
+public class DNFDistributiveLawTransformer extends DistributiveLawTransformer {
+
+    public DNFDistributiveLawTransformer() {
+        super(And.class, And::new);
+    }
+
+    @Override
+    public Compound execute(Formula formula, InternalMonitor monitor) throws MaximumNumberOfLiteralsExceededException {
+        final Compound compound = (formula instanceof Or) ? (Or) formula : new Or(formula);
+        return super.execute(compound, monitor);
+    }
+}
